@@ -1,0 +1,21 @@
+{
+    "name": "dolphin.wang/unsplash-random-download",
+    "description": "随机的从 Unsplash 网站下载图片到本地",
+    "type": "library",
+    "license": "BSD",
+    "authors": [
+        {
+            "name": "wanghaibing",
+            "email": "wanghaibing@shein.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dolphin\\Wang\\Unsplash\\": "src/"
+        }
+    }
+}
