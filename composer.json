@@ -1,5 +1,5 @@
 {
-    "name": "dolphin836/unsplash-random-download",
+    "name": "dolphin.wang/unsplash-random-download",
     "description": "随机的从 Unsplash 网站下载图片到本地",
     "type": "library",
     "license": "BSD-3-Clause",

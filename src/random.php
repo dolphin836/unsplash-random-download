@@ -3,6 +3,8 @@
 namespace Dolphin\Wang\Unsplash;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Exception\RequestException;
 
 /**
  * Random Download Unsplash Photo
@@ -16,11 +18,11 @@ use GuzzleHttp\Client;
 class Random
 {
     /**
-     * Unsplash App Access Key
+     * Unsplash App Access Key Array
      * 
-     * @var string
+     * @var array
      */
-    private $access_key;
+    private $access_key_arr;
 
     /**
      * File Save Dir
@@ -53,12 +55,12 @@ class Random
     /**
      * Init Library
      * 
-     * @param string $access_key Unsplash App Access Key
+     * @param string $access_key_arr Unsplash App Access Key Array
      * @param string $dir File Save Dir
      */
-    public function __construct($access_key, $dir = 'pic')
+    public function __construct($access_key_arr, $dir = 'pic')
     {
-        $this->access_key = $access_key;
+        $this->access_key_arr = $access_key_arr;
 
         $this->dir = $dir;
 
@@ -66,28 +68,36 @@ class Random
     }
 
     /**
-     * Download One Photo
+     * Random Download One Photo
      * 
-     * @return string
+     * @return array
      */
-    public function download()
+    public function rand()
     {
-        $result = $this->guzzle->request('GET', $this->server . $this->methon, [
-            'headers' => [
-                'Accept-Version' => 'v1',
-                'Authorization'  => 'Client-ID ' . $this->access_key
-            ],
-            'verify' => false
-        ]);
+        try {
+            $result = $this->guzzle->request('GET', $this->server . $this->methon, [
+                'headers' => [
+                    'Accept-Version' => 'v1',
+                    'Authorization'  => 'Client-ID ' . $this->rand_access_key()
+                ],
+                'verify' => false
+            ]);
+        } catch(RequestException $e) {
+            return $this->response(3); 
+        }
 
         if ($result->getStatusCode() === 200) {
             $data = json_decode($result->getBody()->getContents());
     
-            $result = $this->guzzle->request('GET', $data->urls->raw, [
-                  'sink' => $this->dir . '/' . $data->id . '.jpg',
-                'verify' => false
-            ]);
-    
+            try {
+                $result = $this->guzzle->request('GET', $data->urls->raw, [
+                    'sink' => $this->dir . '/' . $data->id . '.jpg',
+                  'verify' => false
+                ]);
+            } catch(RequestException $e) {
+                return $this->response(4); 
+            }
+
             if ($result->getStatusCode() === 200) {
                 return $this->response(0, ['id' => $data->id]);
             } else {
@@ -98,12 +108,32 @@ class Random
         }
     }
 
+    /**
+     * Auto Download Photos
+     * 
+     * @return array
+     */
+    public function run()
+    {
+        while(1) {
+            $data = $this->rand();
+
+            if ($data['code'] === 0) {
+                var_dump('Download Image Success:' . $data['data']['id']);
+            } else {
+                var_dump($data['error']);
+            }
+        }
+    }
+
     private function response($status, $data = '')
     {
         $error = [
             '',
             'Request Random Method Failed.',
-            'Download Photo Failed.'
+            'Download Photo Failed.',
+            'Request Random Method Exception.',
+            'Download Photo Exception.'
         ];
 
         return [
@@ -111,5 +141,10 @@ class Random
             'error' => $error[$status],
              'data' => $data
         ];
+    }
+
+    private function rand_access_key()
+    {
+        return $this->access_key_arr[rand(0, count($this->access_key_arr) - 1)];
     }
 }
